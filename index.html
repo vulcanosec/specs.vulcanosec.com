@@ -95,6 +95,10 @@
         
             <li><a href="#introduction">Introduction</a></li>
         
+            <li><a href="#upload-a-profile">Upload a profile</a></li>
+        
+            <li><a href="#download-a-profile">Download a profile</a></li>
+        
     
     </ul>
 </div></div>
@@ -192,7 +196,23 @@ end
 </code></pre>
 
 <p>We can upload this file again:</p>
-<pre><code>tar -cz . | http -a $token: $server/owners/vulcanosec/compliance/example/tar
+<pre><code>tar -cz . | http -a $token: post $server/owners/vulcanosec/compliance/example/tar
+</code></pre>
+<h3 id="upload-a-profile">Upload a profile</h3>
+<p>Change into the profile's directory:</p>
+<pre><code>cd my_profile
+</code></pre>
+<p>It should contain the <code>vmetadata.rb</code> and all tests in the <code>spec</code> folder.</p>
+<p>Add this profile to the server. In our example, we add the profile <code>vulcanosec/example</code>.</p>
+<pre><code>tar -cz . | http -a $token: post $server/owners/vulcanosec/compliance/example/tar
+</code></pre>
+<h3 id="download-a-profile">Download a profile</h3>
+<p>To download a profile, follow this simple call to retrieve all data in a <code>tar.gz</code> file. To get the <code>vulcanosec/example</code> profile, call:</p>
+<pre><code>http -a $token: get $server/owners/vulcanosec/compliance/example/tar &gt; example.tar.gz
+</code></pre>
+<p>Or to directly extract it:</p>
+<pre><code>http -a $token: get $server/owners/vulcanosec/compliance/example/tar | tar xzf -
+cd vulcanosec/example
 </code></pre></div>
         </div>
 
