@@ -109,18 +109,19 @@ cd vulcanosec-example
 touch vmetadata.rb
 </code></pre>
 <p>Information on this profile is stored in <code>vmetadata.rb</code>. In our example, it contains:</p>
-<pre><code># encoding: utf-8
+<pre><code class="ruby"># encoding: utf-8
 
-name "vulcanosec/example"
-version "1.0.0"
-title "Example Spec profile"
-maintainer "Example User"
-copyright "Example User"
-copyright_email "hello@example.com"
-license "Proprietary, All rights reserved"
-summary "Verify a small example profile"
-description "Full description..."
+name &quot;vulcanosec/example&quot;
+version &quot;1.0.0&quot;
+title &quot;Example Spec profile&quot;
+maintainer &quot;Example User&quot;
+copyright &quot;Example User&quot;
+copyright_email &quot;hello@example.com&quot;
+license &quot;Proprietary, All rights reserved&quot;
+summary &quot;Verify a small example profile&quot;
+description &quot;Full description...&quot;
 </code></pre>
+
 <p>Finally we add our tests to the <code>spec</code> folder. Each test file must end with <code>_spec.rb</code>:</p>
 <pre><code>mkdir spec
 touch spec/example_spec.rb
@@ -139,8 +140,8 @@ end
 </code></pre>
 
 <p>This is just a small test to get started, so let's register this profile with the server. We will use API calls to do so:</p>
-<pre><code>server="http://localhost:2134"
-token=$(http post $server/oauth/token -a admin:admin | jq '.access_token' | tr -d '"')
+<pre><code>server="http://myserver:2134/api"
+token=$(http post $server/oauth/token -a username:password | jq '.access_token' | tr -d '"')
 
 # run this command from the folder, where vmetadata.rb is located
 tar -cz . | http -a $token: $server/owners/vulcanosec/compliance/example/tar
