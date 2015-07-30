@@ -105,6 +105,10 @@
         
             <li><a href="#login_def">login_def</a></li>
         
+            <li><a href="#mysql_conf">mysql_conf</a></li>
+        
+            <li><a href="#mysql_session">mysql_session</a></li>
+        
             <li><a href="#ntp_conf">ntp_conf</a></li>
         
             <li><a href="#os_env">os_env</a></li>
@@ -114,6 +118,10 @@
             <li><a href="#parse_config_file">parse_config_file</a></li>
         
             <li><a href="#passwd">passwd</a></li>
+        
+            <li><a href="#postgres_conf">postgres_conf</a></li>
+        
+            <li><a href="#postgres_session">postgres_session</a></li>
         
             <li><a href="#processes">processes</a></li>
         
@@ -196,6 +204,32 @@ end
 end
 </code></pre>
 
+<h2 id="mysql_conf">mysql_conf</h2>
+<p>Test MySQL and MariaDB configuration files:</p>
+<pre><code class="ruby">mysql_conf = MysqlConf.new('/etc/mysql/my.cnf')
+</code></pre>
+
+<h3 id="params">:params</h3>
+<p>Retrieve parameters in a group and test them. In this example,
+we take a look at the <code>safe-user-create</code> parameter, which is in the
+<code>mysqld</code> group.</p>
+<pre><code class="ruby">describe mysql_conf.params('mysqld') do
+  its('safe-user-create') { should eq('1') }
+end
+</code></pre>
+
+<h2 id="mysql_session">mysql_session</h2>
+<p>Run commands on a MySQL server and test their output:</p>
+<pre><code class="ruby">sql = mysql_session(&quot;my_user&quot;,&quot;password&quot;)
+</code></pre>
+
+<h3 id="describe">:describe</h3>
+<p>All tests are structured with the describe command:</p>
+<pre><code class="ruby">sql.describe(&quot;show databases like \&quot;test\&quot;;&quot;) do
+  its(:stdout) { should_not match(/test/) }
+end
+</code></pre>
+
 <h2 id="ntp_conf">ntp_conf</h2>
 <p>Test NTP configuration files:</p>
 <pre><code class="ruby">describe ntp_conf do
@@ -232,6 +266,30 @@ end
 <pre><code class="ruby">describe passwd(0) do
   its(:username) { should eq 'root' }
   its(:count) { should eq 1 }
+end
+</code></pre>
+
+<h2 id="postgres_conf">postgres_conf</h2>
+<p>Test PostgreSQL configuration files:</p>
+<pre><code class="ruby">postgres_conf = PostgresConf.new('/var/lib/pgsql/data/postgresql.conf')
+</code></pre>
+
+<h3 id="params_1">:params</h3>
+<p>Retrieve parameters and test them:</p>
+<pre><code class="ruby">describe postgres.conf.params do
+  it { should include('log_disconnections' =&gt; 'on') }
+end
+</code></pre>
+
+<h2 id="postgres_session">postgres_session</h2>
+<p>Run commands on a MySQL server and test their output:</p>
+<pre><code class="ruby">sql = postgres_session(&quot;my_user&quot;,&quot;password&quot;)
+</code></pre>
+
+<h3 id="describe_1">:describe</h3>
+<p>All tests are structured with the describe command:</p>
+<pre><code class="ruby">sql.describe(&quot;SELECT * FROM pg_shadow WHERE passwd IS NULL;&quot;) do
+  its('output') { should eq('') }
 end
 </code></pre>
 
