@@ -1,0 +1,119 @@
+{
+    "docs": [
+        {
+            "location": "/",
+            "text": "VulcanoSec Specs\n\n\nVulcanoSec specs is a collection of resources and matchers to test the compliance of your nodes. This documentation provides an introduction to this mechanism and shows how to write custom tests.\n\n\nIntroduction\n\n\nAll compliance profiles a grouped by \nowner/profile\n. Let's create an example file profile called \nvulcanosec/example\n.\n\n\nmkdir vulcanosec-example\ncd vulcanosec-example\ntouch vmetadata.rb\n\n\n\nInformation on this profile is stored in \nvmetadata.rb\n. In our example, it contains:\n\n\n# encoding: utf-8\n\nname \"vulcanosec/example\"\nversion \"1.0.0\"\ntitle \"Example Spec profile\"\nmaintainer \"Example User\"\ncopyright \"Example User\"\ncopyright_email \"hello@example.com\"\nlicense \"Proprietary, All rights reserved\"\nsummary \"Verify a small example profile\"\ndescription \"Full description...\"\n\n\n\nFinally we add our tests to the \nspec\n folder. Each test file must end with \n_spec.rb\n:\n\n\nmkdir spec\ntouch spec/example_spec.rb\n\n\n\nWe add a rule to this file, to check the \n/tmp\n path in our system:\n\n\n# encoding: utf-8\n\nrule \ncis-fs-2.1\n do                        # A unique ID for this rule\n  impact 0.7                                # The criticality, if this rule fails.\n  title \nCreate separate /tmp partition\n    # A human-readable title\n  desc \nAn optional description...\n\n  describe file('/tmp') do                  # The actual test\n    it { should be_mounted }\n  end\nend\n\n\n\n\nThis is just a small test to get started, so let's register this profile with the server. We will use API calls to do so:\n\n\nserver=\"http://localhost:2134\"\ntoken=$(http post $server/oauth/token -a admin:admin | jq '.access_token' | tr -d '\"')\n\n# run this command from the folder, where vmetadata.rb is located\ntar -cz . | http -a $token: $server/owners/vulcanosec/compliance/example/tar\n\n\n\nYou will see a confirming:\n\n\nHTTP/1.1 200 OK\n...\n\n\n\nYou can take a look at the profile in the web UI.\n\n\nLet's add another spec for checking the SSH server configuration:\n\n\ntouch spec/sshd_spec.rb\n\n\n\nIt will contain:\n\n\n# encoding: utf-8\n\n# Skip all rules, if SSH doesn't exist on the system\nonly_if do\n  command('sshd').exists?\nend\n\n# load the configuration file\nsshd_conf = SshConf.new('/etc/ssh/sshd_config')\n\nrule \nsshd-11\n do\n  impact 1.0\n  title \nServer: Set protocol version to SSHv2\n\n  desc \n\n    Set the SSH protocol version to 2. Don't use legacy\n    insecure SSHv1 connections anymore.\n  \n\n  describe sshd_conf do\n    its('Protocol') { should eq('2') }\n  end\nend\n\nrule \nsshd-7\n do\n  impact 1.0\n  title \nServer: Do not permit root-based login with password.\n\n  desc \n\n    To reduce the potential to gain full privileges\n    of a system in the course of an attack (by either misconfiguration\n    or vulnerabilities), do not allow login as root with password\n  \n\n  describe sshd_conf do\n    its('PermitRootLogin') { should match(/no|without-password/) }\n  end\nend\n\n\n\n\nWe can upload this file again:\n\n\ntar -cz . | http -a $token: $server/owners/vulcanosec/compliance/example/tar",
+            "title": "Home"
+        },
+        {
+            "location": "/#vulcanosec-specs",
+            "text": "VulcanoSec specs is a collection of resources and matchers to test the compliance of your nodes. This documentation provides an introduction to this mechanism and shows how to write custom tests.  Introduction  All compliance profiles a grouped by  owner/profile . Let's create an example file profile called  vulcanosec/example .  mkdir vulcanosec-example\ncd vulcanosec-example\ntouch vmetadata.rb  Information on this profile is stored in  vmetadata.rb . In our example, it contains:  # encoding: utf-8\n\nname \"vulcanosec/example\"\nversion \"1.0.0\"\ntitle \"Example Spec profile\"\nmaintainer \"Example User\"\ncopyright \"Example User\"\ncopyright_email \"hello@example.com\"\nlicense \"Proprietary, All rights reserved\"\nsummary \"Verify a small example profile\"\ndescription \"Full description...\"  Finally we add our tests to the  spec  folder. Each test file must end with  _spec.rb :  mkdir spec\ntouch spec/example_spec.rb  We add a rule to this file, to check the  /tmp  path in our system:  # encoding: utf-8\n\nrule  cis-fs-2.1  do                        # A unique ID for this rule\n  impact 0.7                                # The criticality, if this rule fails.\n  title  Create separate /tmp partition     # A human-readable title\n  desc  An optional description... \n  describe file('/tmp') do                  # The actual test\n    it { should be_mounted }\n  end\nend  This is just a small test to get started, so let's register this profile with the server. We will use API calls to do so:  server=\"http://localhost:2134\"\ntoken=$(http post $server/oauth/token -a admin:admin | jq '.access_token' | tr -d '\"')\n\n# run this command from the folder, where vmetadata.rb is located\ntar -cz . | http -a $token: $server/owners/vulcanosec/compliance/example/tar  You will see a confirming:  HTTP/1.1 200 OK\n...  You can take a look at the profile in the web UI.  Let's add another spec for checking the SSH server configuration:  touch spec/sshd_spec.rb  It will contain:  # encoding: utf-8\n\n# Skip all rules, if SSH doesn't exist on the system\nonly_if do\n  command('sshd').exists?\nend\n\n# load the configuration file\nsshd_conf = SshConf.new('/etc/ssh/sshd_config')\n\nrule  sshd-11  do\n  impact 1.0\n  title  Server: Set protocol version to SSHv2 \n  desc  \n    Set the SSH protocol version to 2. Don't use legacy\n    insecure SSHv1 connections anymore.\n   \n  describe sshd_conf do\n    its('Protocol') { should eq('2') }\n  end\nend\n\nrule  sshd-7  do\n  impact 1.0\n  title  Server: Do not permit root-based login with password. \n  desc  \n    To reduce the potential to gain full privileges\n    of a system in the course of an attack (by either misconfiguration\n    or vulnerabilities), do not allow login as root with password\n   \n  describe sshd_conf do\n    its('PermitRootLogin') { should match(/no|without-password/) }\n  end\nend  We can upload this file again:  tar -cz . | http -a $token: $server/owners/vulcanosec/compliance/example/tar",
+            "title": "VulcanoSec Specs"
+        },
+        {
+            "location": "/matchers/",
+            "text": "Matchers\n\n\ncontain_match\n\n\nTest if an array contains a matching element, which is identified by a regular expression.\n\n\ndescribe audit_daemon_rules do\n  its(\nLIST_RULES\n) {should contain_match(/^exit,always arch=.* key=time-change syscall=adjtimex,settimeofday/) }\nend\n\n\n\n\ncontain_duplicates\n\n\nTest if a list contains duplicate elements:\n\n\ndescribe etc_group do\n  its(:gids) { should_not contain_duplicates }\nend",
+            "title": "Matchers"
+        },
+        {
+            "location": "/matchers/#matchers",
+            "text": "",
+            "title": "Matchers"
+        },
+        {
+            "location": "/matchers/#contain_match",
+            "text": "Test if an array contains a matching element, which is identified by a regular expression.  describe audit_daemon_rules do\n  its( LIST_RULES ) {should contain_match(/^exit,always arch=.* key=time-change syscall=adjtimex,settimeofday/) }\nend",
+            "title": "contain_match"
+        },
+        {
+            "location": "/matchers/#contain_duplicates",
+            "text": "Test if a list contains duplicate elements:  describe etc_group do\n  its(:gids) { should_not contain_duplicates }\nend",
+            "title": "contain_duplicates"
+        },
+        {
+            "location": "/resources/",
+            "text": "Resources\n\n\nAll basic resources known from serverspec are included. Please see its \ndocumentation here\n.\n\n\naudit_policy\n\n\nCheck Microsoft Windows Audit Policies:\n\n\ndescribe audit_policy do\n  its(\nOther Account Logon Events\n) { should_not eq 'No Auditing' }\nend\n\n\n\n\netc_group\n\n\nParse the \n/etc/group\n file:\n\n\netcgroup = EtcGroup.new('/etc/group')\n\n\n\n\nA shortcut with the default path is:\n\n\netc_group     # uses /etc/group\n\n\n\n\n:gids\n\n\nAccess all group IDs:\n\n\ndescribe etc_group do\n  its(:gids) { should_not contain_duplicates }\nend\n\n\n\n\n:groups\n\n\nAccess all group names:\n\n\ndescribe etc_group do\n  its(:groups) { should include 'my_user' }\nend\n\n\n\n\ngroup_policy\n\n\nTest Microsoft Windows Group Policies:\n\n\ndescribe group_policy('Local Policies\\Security Options') do\n  its('Network access: Restrict anonymous access to Named Pipes and Shares') { should eq 1 }\nend\n\n\n\n\ninetd_config\n\n\nTest inetd config files:\n\n\ndescribe inetd_conf do\n  its(\nshell\n) { should eq nil }\n  its(\nlogin\n) { should eq nil }\n  its(\nexec\n) { should eq nil }\nend\n\n\n\n\nlimits_conf\n\n\nTest Linux-based \n/etc/security/limits.conf\n:\n\n\ndescribe limits_conf do\n  its(\n*\n) { should include ['hard','core','0'] }\nend\n\n\n\n\nlogin_def\n\n\nTest Linux-based \n/etc/login.defs\n:\n\n\ndescribe login_def do\n  its(\nUMASK\n) {\n    should eq \n077\n\n  }\n\n  its(\nPASS_MAX_DAYS.to_i\n) {\n    should be \n= 90\n  }\nend\n\n\n\n\nntp_conf\n\n\nTest NTP configuration files:\n\n\ndescribe ntp_conf do\n  its(\nserver\n) { should_not eq nil }\n  its(\nrestrict\n) { should include '-4 default kod notrap nomodify nopeer noquery'}\nend\n\n\n\n\nos_env\n\n\nTest environment variables:\n\n\ndescribe os_env('PATH') do |dirs|\n  its(:split) { should_not include('') }\n  its(:split) { should_not include('.') }\nend\n\n\n\n\nparse_config\n\n\nParse and test arbitrary configuration strings:\n\n\noutput = command('useradd -D').stdout\ndescribe parse_config(output) do\n  its(\nINACTIVE.to_i\n) { should be \n= 35 }\nend\n\n\n\n\nparse_config_file\n\n\nParse and test arbitrary configuration files:\n\n\ndescribe parse_config_file('/path/to/file.conf') do\n  its(\nPARAM_X\n) { should eq 'Y' }\nend\n\n\n\n\npasswd\n\n\nTest \n/etc/passwd\n:\n\n\ndescribe passwd(0) do\n  its(:username) { should eq 'root' }\n  its(:count) { should eq 1 }\nend\n\n\n\n\nprocesses\n\n\nCheck the list of running programs and test it:\n\n\ndescribe processes('mysqld') do\n  its('list.length') { should be(1) }\nend\n\n\n\n\nregistry_key\n\n\nThis resource allows you to test Windows Registry keys by checking the resulting values:\n\n\ndescribe registry_key('Task Scheduler','HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\services\\Schedule') do\n  its('Start') { should eq 2 }\nend\n\n\n\n\nssh_config\n\n\nTest default OpenSSH configuration files:\n\n\nssh_config     # /etc/ssh/ssh_config\nsshd_config    # /etc/ssh/sshd_config\n\n\n\n\nParse custom SSH client and server configuration files:\n\n\nclient = SshConf.new('/etc/ssh/ssh_config')\nserver = SshConf.new('/etc/ssh/sshd_config')\n\n\n\n\nUsage:\n\n\ndescribe sshd_config do\n  its('Protocol') { should eq('2') }\nend\n\n\n\n\nsecurity_policy\n\n\nTest Microsoft Windows Security Policies:\n\n\ndescribe security_policy do\n  # verifies that only the 'Administrators' group has remote access\n  its('SeRemoteInteractiveLogonRight') { should eq '*S-1-5-32-544' }\nend",
+            "title": "Resources"
+        },
+        {
+            "location": "/resources/#resources",
+            "text": "All basic resources known from serverspec are included. Please see its  documentation here .",
+            "title": "Resources"
+        },
+        {
+            "location": "/resources/#audit_policy",
+            "text": "Check Microsoft Windows Audit Policies:  describe audit_policy do\n  its( Other Account Logon Events ) { should_not eq 'No Auditing' }\nend",
+            "title": "audit_policy"
+        },
+        {
+            "location": "/resources/#etc_group",
+            "text": "Parse the  /etc/group  file:  etcgroup = EtcGroup.new('/etc/group')  A shortcut with the default path is:  etc_group     # uses /etc/group  :gids  Access all group IDs:  describe etc_group do\n  its(:gids) { should_not contain_duplicates }\nend  :groups  Access all group names:  describe etc_group do\n  its(:groups) { should include 'my_user' }\nend",
+            "title": "etc_group"
+        },
+        {
+            "location": "/resources/#group_policy",
+            "text": "Test Microsoft Windows Group Policies:  describe group_policy('Local Policies\\Security Options') do\n  its('Network access: Restrict anonymous access to Named Pipes and Shares') { should eq 1 }\nend",
+            "title": "group_policy"
+        },
+        {
+            "location": "/resources/#inetd_config",
+            "text": "Test inetd config files:  describe inetd_conf do\n  its( shell ) { should eq nil }\n  its( login ) { should eq nil }\n  its( exec ) { should eq nil }\nend",
+            "title": "inetd_config"
+        },
+        {
+            "location": "/resources/#limits_conf",
+            "text": "Test Linux-based  /etc/security/limits.conf :  describe limits_conf do\n  its( * ) { should include ['hard','core','0'] }\nend",
+            "title": "limits_conf"
+        },
+        {
+            "location": "/resources/#login_def",
+            "text": "Test Linux-based  /etc/login.defs :  describe login_def do\n  its( UMASK ) {\n    should eq  077 \n  }\n\n  its( PASS_MAX_DAYS.to_i ) {\n    should be  = 90\n  }\nend",
+            "title": "login_def"
+        },
+        {
+            "location": "/resources/#ntp_conf",
+            "text": "Test NTP configuration files:  describe ntp_conf do\n  its( server ) { should_not eq nil }\n  its( restrict ) { should include '-4 default kod notrap nomodify nopeer noquery'}\nend",
+            "title": "ntp_conf"
+        },
+        {
+            "location": "/resources/#os_env",
+            "text": "Test environment variables:  describe os_env('PATH') do |dirs|\n  its(:split) { should_not include('') }\n  its(:split) { should_not include('.') }\nend",
+            "title": "os_env"
+        },
+        {
+            "location": "/resources/#parse_config",
+            "text": "Parse and test arbitrary configuration strings:  output = command('useradd -D').stdout\ndescribe parse_config(output) do\n  its( INACTIVE.to_i ) { should be  = 35 }\nend",
+            "title": "parse_config"
+        },
+        {
+            "location": "/resources/#parse_config_file",
+            "text": "Parse and test arbitrary configuration files:  describe parse_config_file('/path/to/file.conf') do\n  its( PARAM_X ) { should eq 'Y' }\nend",
+            "title": "parse_config_file"
+        },
+        {
+            "location": "/resources/#passwd",
+            "text": "Test  /etc/passwd :  describe passwd(0) do\n  its(:username) { should eq 'root' }\n  its(:count) { should eq 1 }\nend",
+            "title": "passwd"
+        },
+        {
+            "location": "/resources/#processes",
+            "text": "Check the list of running programs and test it:  describe processes('mysqld') do\n  its('list.length') { should be(1) }\nend",
+            "title": "processes"
+        },
+        {
+            "location": "/resources/#registry_key",
+            "text": "This resource allows you to test Windows Registry keys by checking the resulting values:  describe registry_key('Task Scheduler','HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\services\\Schedule') do\n  its('Start') { should eq 2 }\nend",
+            "title": "registry_key"
+        },
+        {
+            "location": "/resources/#ssh_config",
+            "text": "Test default OpenSSH configuration files:  ssh_config     # /etc/ssh/ssh_config\nsshd_config    # /etc/ssh/sshd_config  Parse custom SSH client and server configuration files:  client = SshConf.new('/etc/ssh/ssh_config')\nserver = SshConf.new('/etc/ssh/sshd_config')  Usage:  describe sshd_config do\n  its('Protocol') { should eq('2') }\nend",
+            "title": "ssh_config"
+        },
+        {
+            "location": "/resources/#security_policy",
+            "text": "Test Microsoft Windows Security Policies:  describe security_policy do\n  # verifies that only the 'Administrators' group has remote access\n  its('SeRemoteInteractiveLogonRight') { should eq '*S-1-5-32-544' }\nend",
+            "title": "security_policy"
+        }
+    ]
+}

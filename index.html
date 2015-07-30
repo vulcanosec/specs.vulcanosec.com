@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="./img/favicon.ico">
+
+	<title>VulcanoSec Specs</title>
+
+        <link href="./css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="./css/font-awesome-4.0.3.css" rel="stylesheet">
+        <link rel="stylesheet" href="./css/highlight.css">
+        <link href="./css/base.css" rel="stylesheet">
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+        
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+
+            <!-- Main title -->
+            <a class="navbar-brand" href=".">VulcanoSec Specs</a>
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+            <!-- Main navigation -->
+            <ul class="nav navbar-nav">
+            
+            
+                <li class="active">
+                    <a href=".">Home</a>
+                </li>
+            
+            
+            
+                <li >
+                    <a href="matchers/">Matchers</a>
+                </li>
+            
+            
+            
+                <li >
+                    <a href="resources/">Resources</a>
+                </li>
+            
+            
+            </ul>
+
+            <!-- Search, Navigation and Repo links -->
+            <ul class="nav navbar-nav navbar-right">
+                <li class="disabled">
+                    <a rel="next" >
+                        <i class="fa fa-arrow-left"></i> Previous
+                    </a>
+                </li>
+                <li >
+                    <a rel="prev" href="matchers/">
+                        Next <i class="fa fa-arrow-right"></i>
+                    </a>
+                </li>
+                
+            </ul>
+        </div>
+    </div>
+</div>
+
+        <div class="container">
+            <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+    
+        <li class="main active"><a href="#vulcanosec-specs">VulcanoSec Specs</a></li>
+        
+            <li><a href="#introduction">Introduction</a></li>
+        
+    
+    </ul>
+</div></div>
+            <div class="col-md-9" role="main">
+
+<h1 id="vulcanosec-specs">VulcanoSec Specs</h1>
+<p>VulcanoSec specs is a collection of resources and matchers to test the compliance of your nodes. This documentation provides an introduction to this mechanism and shows how to write custom tests.</p>
+<h3 id="introduction">Introduction</h3>
+<p>All compliance profiles a grouped by <code>owner/profile</code>. Let's create an example file profile called <code>vulcanosec/example</code>.</p>
+<pre><code>mkdir vulcanosec-example
+cd vulcanosec-example
+touch vmetadata.rb
+</code></pre>
+<p>Information on this profile is stored in <code>vmetadata.rb</code>. In our example, it contains:</p>
+<pre><code># encoding: utf-8
+
+name "vulcanosec/example"
+version "1.0.0"
+title "Example Spec profile"
+maintainer "Example User"
+copyright "Example User"
+copyright_email "hello@example.com"
+license "Proprietary, All rights reserved"
+summary "Verify a small example profile"
+description "Full description..."
+</code></pre>
+<p>Finally we add our tests to the <code>spec</code> folder. Each test file must end with <code>_spec.rb</code>:</p>
+<pre><code>mkdir spec
+touch spec/example_spec.rb
+</code></pre>
+<p>We add a rule to this file, to check the <code>/tmp</code> path in our system:</p>
+<pre><code class="ruby"># encoding: utf-8
+
+rule &quot;cis-fs-2.1&quot; do                        # A unique ID for this rule
+  impact 0.7                                # The criticality, if this rule fails.
+  title &quot;Create separate /tmp partition&quot;    # A human-readable title
+  desc &quot;An optional description...&quot;
+  describe file('/tmp') do                  # The actual test
+    it { should be_mounted }
+  end
+end
+</code></pre>
+
+<p>This is just a small test to get started, so let's register this profile with the server. We will use API calls to do so:</p>
+<pre><code>server="http://localhost:2134"
+token=$(http post $server/oauth/token -a admin:admin | jq '.access_token' | tr -d '"')
+
+# run this command from the folder, where vmetadata.rb is located
+tar -cz . | http -a $token: $server/owners/vulcanosec/compliance/example/tar
+</code></pre>
+<p>You will see a confirming:</p>
+<pre><code>HTTP/1.1 200 OK
+...
+</code></pre>
+<p>You can take a look at the profile in the web UI.</p>
+<p>Let's add another spec for checking the SSH server configuration:</p>
+<pre><code>touch spec/sshd_spec.rb
+</code></pre>
+<p>It will contain:</p>
+<pre><code class="ruby"># encoding: utf-8
+
+# Skip all rules, if SSH doesn't exist on the system
+only_if do
+  command('sshd').exists?
+end
+
+# load the configuration file
+sshd_conf = SshConf.new('/etc/ssh/sshd_config')
+
+rule &quot;sshd-11&quot; do
+  impact 1.0
+  title &quot;Server: Set protocol version to SSHv2&quot;
+  desc &quot;
+    Set the SSH protocol version to 2. Don't use legacy
+    insecure SSHv1 connections anymore.
+  &quot;
+  describe sshd_conf do
+    its('Protocol') { should eq('2') }
+  end
+end
+
+rule &quot;sshd-7&quot; do
+  impact 1.0
+  title &quot;Server: Do not permit root-based login with password.&quot;
+  desc &quot;
+    To reduce the potential to gain full privileges
+    of a system in the course of an attack (by either misconfiguration
+    or vulnerabilities), do not allow login as root with password
+  &quot;
+  describe sshd_conf do
+    its('PermitRootLogin') { should match(/no|without-password/) }
+  end
+end
+</code></pre>
+
+<p>We can upload this file again:</p>
+<pre><code>tar -cz . | http -a $token: $server/owners/vulcanosec/compliance/example/tar
+</code></pre></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            
+            <center>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</center>
+        </footer>
+
+        <script src="./js/jquery-1.10.2.min.js"></script>
+        <script src="./js/bootstrap-3.0.3.min.js"></script>
+        <script src="./js/highlight.pack.js"></script>
+        <script src="./js/base.js"></script>
+    </body>
+</html>

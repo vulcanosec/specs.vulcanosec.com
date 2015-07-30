@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+
+	<title>Resources - VulcanoSec Specs</title>
+
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome-4.0.3.css" rel="stylesheet">
+        <link rel="stylesheet" href="../css/highlight.css">
+        <link href="../css/base.css" rel="stylesheet">
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+        
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+
+            <!-- Main title -->
+            <a class="navbar-brand" href="..">VulcanoSec Specs</a>
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+            <!-- Main navigation -->
+            <ul class="nav navbar-nav">
+            
+            
+                <li >
+                    <a href="..">Home</a>
+                </li>
+            
+            
+            
+                <li >
+                    <a href="../matchers/">Matchers</a>
+                </li>
+            
+            
+            
+                <li class="active">
+                    <a href="./">Resources</a>
+                </li>
+            
+            
+            </ul>
+
+            <!-- Search, Navigation and Repo links -->
+            <ul class="nav navbar-nav navbar-right">
+                <li >
+                    <a rel="next" href="../matchers/">
+                        <i class="fa fa-arrow-left"></i> Previous
+                    </a>
+                </li>
+                <li class="disabled">
+                    <a rel="prev" >
+                        Next <i class="fa fa-arrow-right"></i>
+                    </a>
+                </li>
+                
+            </ul>
+        </div>
+    </div>
+</div>
+
+        <div class="container">
+            <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+    
+        <li class="main active"><a href="#resources">Resources</a></li>
+        
+            <li><a href="#audit_policy">audit_policy</a></li>
+        
+            <li><a href="#etc_group">etc_group</a></li>
+        
+            <li><a href="#group_policy">group_policy</a></li>
+        
+            <li><a href="#inetd_config">inetd_config</a></li>
+        
+            <li><a href="#limits_conf">limits_conf</a></li>
+        
+            <li><a href="#login_def">login_def</a></li>
+        
+            <li><a href="#ntp_conf">ntp_conf</a></li>
+        
+            <li><a href="#os_env">os_env</a></li>
+        
+            <li><a href="#parse_config">parse_config</a></li>
+        
+            <li><a href="#parse_config_file">parse_config_file</a></li>
+        
+            <li><a href="#passwd">passwd</a></li>
+        
+            <li><a href="#processes">processes</a></li>
+        
+            <li><a href="#registry_key">registry_key</a></li>
+        
+            <li><a href="#ssh_config">ssh_config</a></li>
+        
+            <li><a href="#security_policy">security_policy</a></li>
+        
+    
+    </ul>
+</div></div>
+            <div class="col-md-9" role="main">
+
+<h1 id="resources">Resources</h1>
+<p>All basic resources known from serverspec are included. Please see its <a href="http://serverspec.org/resource_types.html">documentation here</a>.</p>
+<h2 id="audit_policy">audit_policy</h2>
+<p>Check Microsoft Windows Audit Policies:</p>
+<pre><code class="ruby">describe audit_policy do
+  its(&quot;Other Account Logon Events&quot;) { should_not eq 'No Auditing' }
+end
+</code></pre>
+
+<h2 id="etc_group">etc_group</h2>
+<p>Parse the <code>/etc/group</code> file:</p>
+<pre><code class="ruby">etcgroup = EtcGroup.new('/etc/group')
+</code></pre>
+
+<p>A shortcut with the default path is:</p>
+<pre><code class="ruby">etc_group     # uses /etc/group
+</code></pre>
+
+<h3 id="gids">:gids</h3>
+<p>Access all group IDs:</p>
+<pre><code class="ruby">describe etc_group do
+  its(:gids) { should_not contain_duplicates }
+end
+</code></pre>
+
+<h3 id="groups">:groups</h3>
+<p>Access all group names:</p>
+<pre><code class="ruby">describe etc_group do
+  its(:groups) { should include 'my_user' }
+end
+</code></pre>
+
+<h2 id="group_policy">group_policy</h2>
+<p>Test Microsoft Windows Group Policies:</p>
+<pre><code class="ruby">describe group_policy('Local Policies\Security Options') do
+  its('Network access: Restrict anonymous access to Named Pipes and Shares') { should eq 1 }
+end
+</code></pre>
+
+<h2 id="inetd_config">inetd_config</h2>
+<p>Test inetd config files:</p>
+<pre><code class="ruby">describe inetd_conf do
+  its(&quot;shell&quot;) { should eq nil }
+  its(&quot;login&quot;) { should eq nil }
+  its(&quot;exec&quot;) { should eq nil }
+end
+</code></pre>
+
+<h2 id="limits_conf">limits_conf</h2>
+<p>Test Linux-based <code>/etc/security/limits.conf</code>:</p>
+<pre><code class="ruby">describe limits_conf do
+  its(&quot;*&quot;) { should include ['hard','core','0'] }
+end
+</code></pre>
+
+<h2 id="login_def">login_def</h2>
+<p>Test Linux-based <code>/etc/login.defs</code>:</p>
+<pre><code class="ruby">describe login_def do
+  its(&quot;UMASK&quot;) {
+    should eq &quot;077&quot;
+  }
+
+  its(&quot;PASS_MAX_DAYS.to_i&quot;) {
+    should be &lt;= 90
+  }
+end
+</code></pre>
+
+<h2 id="ntp_conf">ntp_conf</h2>
+<p>Test NTP configuration files:</p>
+<pre><code class="ruby">describe ntp_conf do
+  its(&quot;server&quot;) { should_not eq nil }
+  its(&quot;restrict&quot;) { should include '-4 default kod notrap nomodify nopeer noquery'}
+end
+</code></pre>
+
+<h2 id="os_env">os_env</h2>
+<p>Test environment variables:</p>
+<pre><code class="ruby">describe os_env('PATH') do |dirs|
+  its(:split) { should_not include('') }
+  its(:split) { should_not include('.') }
+end
+</code></pre>
+
+<h2 id="parse_config">parse_config</h2>
+<p>Parse and test arbitrary configuration strings:</p>
+<pre><code class="ruby">output = command('useradd -D').stdout
+describe parse_config(output) do
+  its(&quot;INACTIVE.to_i&quot;) { should be &gt;= 35 }
+end
+</code></pre>
+
+<h2 id="parse_config_file">parse_config_file</h2>
+<p>Parse and test arbitrary configuration files:</p>
+<pre><code class="ruby">describe parse_config_file('/path/to/file.conf') do
+  its(&quot;PARAM_X&quot;) { should eq 'Y' }
+end
+</code></pre>
+
+<h2 id="passwd">passwd</h2>
+<p>Test <code>/etc/passwd</code>:</p>
+<pre><code class="ruby">describe passwd(0) do
+  its(:username) { should eq 'root' }
+  its(:count) { should eq 1 }
+end
+</code></pre>
+
+<h2 id="processes">processes</h2>
+<p>Check the list of running programs and test it:</p>
+<pre><code class="ruby">describe processes('mysqld') do
+  its('list.length') { should be(1) }
+end
+</code></pre>
+
+<h2 id="registry_key">registry_key</h2>
+<p>This resource allows you to test Windows Registry keys by checking the resulting values:</p>
+<pre><code class="ruby">describe registry_key('Task Scheduler','HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\Schedule') do
+  its('Start') { should eq 2 }
+end
+</code></pre>
+
+<h2 id="ssh_config">ssh_config</h2>
+<p>Test default OpenSSH configuration files:</p>
+<pre><code class="ruby">ssh_config     # /etc/ssh/ssh_config
+sshd_config    # /etc/ssh/sshd_config
+</code></pre>
+
+<p>Parse custom SSH client and server configuration files:</p>
+<pre><code class="ruby">client = SshConf.new('/etc/ssh/ssh_config')
+server = SshConf.new('/etc/ssh/sshd_config')
+</code></pre>
+
+<p>Usage:</p>
+<pre><code class="ruby">describe sshd_config do
+  its('Protocol') { should eq('2') }
+end
+</code></pre>
+
+<h2 id="security_policy">security_policy</h2>
+<p>Test Microsoft Windows Security Policies:</p>
+<pre><code class="ruby">describe security_policy do
+  # verifies that only the 'Administrators' group has remote access
+  its('SeRemoteInteractiveLogonRight') { should eq '*S-1-5-32-544' }
+end
+</code></pre></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            
+            <center>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</center>
+        </footer>
+
+        <script src="../js/jquery-1.10.2.min.js"></script>
+        <script src="../js/bootstrap-3.0.3.min.js"></script>
+        <script src="../js/highlight.pack.js"></script>
+        <script src="../js/base.js"></script>
+    </body>
+</html>
