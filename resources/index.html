@@ -15,6 +15,7 @@
         <link href="../css/font-awesome-4.0.3.css" rel="stylesheet">
         <link rel="stylesheet" href="../css/highlight.css">
         <link href="../css/base.css" rel="stylesheet">
+        <link href="../css/extra.css" rel="stylesheet">
 
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!--[if lt IE 9]>
@@ -205,13 +206,17 @@ end
 </code></pre>
 
 <h2 id="mysql_conf">mysql_conf</h2>
+<div class="admonition warning">
+<p class="admonition-title">Please note that this is different from Serverspec</p>
+<p>See <a href="http://serverspec.org/resource_types.html#mysql_config">its resource reference</a> for comparison,</p>
+</div>
 <p>Test MySQL and MariaDB configuration files:</p>
 <pre><code class="ruby">mysql_conf = MysqlConf.new('/etc/mysql/my.cnf')
 </code></pre>
 
 <h3 id="params">:params</h3>
-<p>Retrieve parameters in a group and test them. In this example,
-we take a look at the <code>safe-user-create</code> parameter, which is in the
+<p>Retrieve parameters in a group and test them. In this example,<br />
+we take a look at the <code>safe-user-create</code> parameter, which is in the<br />
 <code>mysqld</code> group.</p>
 <pre><code class="ruby">describe mysql_conf.params('mysqld') do
   its('safe-user-create') { should eq('1') }
@@ -254,10 +259,55 @@ describe parse_config(output) do
 end
 </code></pre>
 
+<p>You can configure the way in which config data is parsed:</p>
+<pre><code class="ruby">describe parse_config(data, { multiple_values: true }) do
+  its(&quot;users&quot;) { should include 'bob'}
+end
+</code></pre>
+
+<p>The following options are supported:</p>
+<pre><code class="ruby">{
+  # A regular expression which determines
+  # an assignment from key to value
+  # This example would match &quot;key = value&quot;
+  assignment_re: /^\s*([^=]*?)\s*=\s*(.*?)\s*$/,
+
+  # How many values a key contains;
+  # e.g. key = a b c
+  #      would contain 3 values
+  key_vals: 1,
+
+  # What is identified as a comment.
+  comment_char: '#',
+
+  # Determine if comments must always be
+  # in a separate line. Examples:
+  # set to false:   &quot;key = value # comment&quot;
+  #   results to:   params[&quot;key&quot;] = &quot;value&quot;
+  # set to true:    &quot;key = value # comment&quot;
+  #   results to:   params[&quot;key&quot;] = &quot;value # comment&quot;
+  standalone_comments: false,
+
+  # Configure if multiple values are possible
+  # for each key. Examples:
+  # set to true:   &quot;key = a&quot; and &quot;key = b&quot;
+  #  results to:   params[&quot;key&quot;] = [&quot;a&quot;, &quot;b&quot;]
+  # set to false:  &quot;key = a&quot; and &quot;key = b&quot;
+  #  results to:   params[&quot;key&quot;] = &quot;b&quot;
+  multiple_values: false
+}
+</code></pre>
+
 <h2 id="parse_config_file">parse_config_file</h2>
 <p>Parse and test arbitrary configuration files:</p>
 <pre><code class="ruby">describe parse_config_file('/path/to/file.conf') do
   its(&quot;PARAM_X&quot;) { should eq 'Y' }
+end
+</code></pre>
+
+<p>Options can be configure similar to <a href="#parse_config">parse_config</a>:</p>
+<pre><code class="ruby">describe parse_config_file('/path/to/file.conf', { multiple_values: true }) do
+  its(&quot;PARAM_X&quot;) { should include 'Y' }
 end
 </code></pre>
 
@@ -332,12 +382,6 @@ end
 end
 </code></pre></div>
         </div>
-
-        <footer class="col-md-12">
-            <hr>
-            
-            <center>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</center>
-        </footer>
 
         <script src="../js/jquery-1.10.2.min.js"></script>
         <script src="../js/bootstrap-3.0.3.min.js"></script>
