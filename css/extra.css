@@ -1,3 +1,36 @@
+a {
+  color: #626F80;
+}
+
+.active a {
+  color: #70c2e8;
+}
+
+a:hover {
+  color: #70c2e8;
+}
+
+a:focus {
+  color: #70c2e8;
+}
+
+a:active {
+  color: #70c2e8;
+}
+
+h2 {
+  margin-top: 6rem;
+}
+
+.bs-sidebar.affix {
+  position: absolute;
+  top: 2.3rem;
+}
+
+.bs-sidenav .main {
+  display: none;
+}
+
 /*
 Original file can be found here:
 https://raw.githubusercontent.com/wolfcms/docs.wolfcms.org/master/docs/themes/wolfcms/extra-css.css

@@ -142,30 +142,30 @@
 <h2 id="audit_policy">audit_policy</h2>
 <p>Check Microsoft Windows Audit Policies:</p>
 <pre><code class="ruby">describe audit_policy do
-  its(&quot;Other Account Logon Events&quot;) { should_not eq 'No Auditing' }
+  its('Other Account Logon Events') { should_not eq 'No Auditing' }
 end
 </code></pre>
 
 <h2 id="etc_group">etc_group</h2>
 <p>Parse the <code>/etc/group</code> file:</p>
-<pre><code class="ruby">etcgroup = EtcGroup.new('/etc/group')
+<pre><code class="ruby">etc_group     # uses /etc/group
 </code></pre>
 
-<p>A shortcut with the default path is:</p>
-<pre><code class="ruby">etc_group     # uses /etc/group
+<p>You can also specify the file's location:</p>
+<pre><code class="ruby">etc_group('/etc/group')
 </code></pre>
 
 <h3 id="gids">:gids</h3>
 <p>Access all group IDs:</p>
 <pre><code class="ruby">describe etc_group do
-  its(:gids) { should_not contain_duplicates }
+  its('gids') { should_not contain_duplicates }
 end
 </code></pre>
 
 <h3 id="groups">:groups</h3>
 <p>Access all group names:</p>
 <pre><code class="ruby">describe etc_group do
-  its(:groups) { should include 'my_user' }
+  its('groups') { should include 'my_user' }
 end
 </code></pre>
 
@@ -179,27 +179,27 @@ end
 <h2 id="inetd_config">inetd_config</h2>
 <p>Test inetd config files:</p>
 <pre><code class="ruby">describe inetd_conf do
-  its(&quot;shell&quot;) { should eq nil }
-  its(&quot;login&quot;) { should eq nil }
-  its(&quot;exec&quot;) { should eq nil }
+  its('shell') { should eq nil }
+  its('login') { should eq nil }
+  its('exec') { should eq nil }
 end
 </code></pre>
 
 <h2 id="limits_conf">limits_conf</h2>
 <p>Test Linux-based <code>/etc/security/limits.conf</code>:</p>
 <pre><code class="ruby">describe limits_conf do
-  its(&quot;*&quot;) { should include ['hard','core','0'] }
+  its('*') { should include ['hard','core','0'] }
 end
 </code></pre>
 
 <h2 id="login_def">login_def</h2>
 <p>Test Linux-based <code>/etc/login.defs</code>:</p>
 <pre><code class="ruby">describe login_def do
-  its(&quot;UMASK&quot;) {
-    should eq &quot;077&quot;
+  its('UMASK') {
+    should eq '077'
   }
 
-  its(&quot;PASS_MAX_DAYS.to_i&quot;) {
+  its('PASS_MAX_DAYS.to_i') {
     should be &lt;= 90
   }
 end
@@ -207,11 +207,15 @@ end
 
 <h2 id="mysql_conf">mysql_conf</h2>
 <div class="admonition warning">
-<p class="admonition-title">Please note that this is different from Serverspec</p>
-<p>See <a href="http://serverspec.org/resource_types.html#mysql_config">its resource reference</a> for comparison,</p>
+<p class="admonition-title">Difference to Serverspec</p>
+<p>See <a href="http://serverspec.org/resource_types.html#mysql_config">Serverspec resource reference</a> for comparison,</p>
 </div>
-<p>Test MySQL and MariaDB configuration files:</p>
-<pre><code class="ruby">mysql_conf = MysqlConf.new('/etc/mysql/my.cnf')
+<p>Test default MySQL and MariaDB configuration files:</p>
+<pre><code class="ruby">mysql_conf
+</code></pre>
+
+<p>You can also specify the configuration path:</p>
+<pre><code class="ruby">mysql_conf('/etc/mysql/my.cnf')
 </code></pre>
 
 <h3 id="params">:params</h3>
@@ -225,12 +229,12 @@ end
 
 <h2 id="mysql_session">mysql_session</h2>
 <p>Run commands on a MySQL server and test their output:</p>
-<pre><code class="ruby">sql = mysql_session(&quot;my_user&quot;,&quot;password&quot;)
+<pre><code class="ruby">sql = mysql_session('my_user','password')
 </code></pre>
 
 <h3 id="describe">:describe</h3>
 <p>All tests are structured with the describe command:</p>
-<pre><code class="ruby">sql.describe(&quot;show databases like \&quot;test\&quot;;&quot;) do
+<pre><code class="ruby">sql.describe('show databases like \'test\';') do
   its(:stdout) { should_not match(/test/) }
 end
 </code></pre>
@@ -238,8 +242,8 @@ end
 <h2 id="ntp_conf">ntp_conf</h2>
 <p>Test NTP configuration files:</p>
 <pre><code class="ruby">describe ntp_conf do
-  its(&quot;server&quot;) { should_not eq nil }
-  its(&quot;restrict&quot;) { should include '-4 default kod notrap nomodify nopeer noquery'}
+  its('server') { should_not eq nil }
+  its('restrict') { should include '-4 default kod notrap nomodify nopeer noquery'}
 end
 </code></pre>
 
@@ -255,13 +259,13 @@ end
 <p>Parse and test arbitrary configuration strings:</p>
 <pre><code class="ruby">output = command('useradd -D').stdout
 describe parse_config(output) do
-  its(&quot;INACTIVE.to_i&quot;) { should be &gt;= 35 }
+  its('INACTIVE.to_i') { should be &gt;= 35 }
 end
 </code></pre>
 
 <p>You can configure the way in which config data is parsed:</p>
 <pre><code class="ruby">describe parse_config(data, { multiple_values: true }) do
-  its(&quot;users&quot;) { should include 'bob'}
+  its('users') { should include 'bob'}
 end
 </code></pre>
 
@@ -269,7 +273,7 @@ end
 <pre><code class="ruby">{
   # A regular expression which determines
   # an assignment from key to value
-  # This example would match &quot;key = value&quot;
+  # This example would match 'key = value'
   assignment_re: /^\s*([^=]*?)\s*=\s*(.*?)\s*$/,
 
   # How many values a key contains;
@@ -282,18 +286,18 @@ end
 
   # Determine if comments must always be
   # in a separate line. Examples:
-  # set to false:   &quot;key = value # comment&quot;
-  #   results to:   params[&quot;key&quot;] = &quot;value&quot;
-  # set to true:    &quot;key = value # comment&quot;
-  #   results to:   params[&quot;key&quot;] = &quot;value # comment&quot;
+  # set to false:   'key = value # comment'
+  #   results to:   params['key'] = 'value'
+  # set to true:    'key = value # comment'
+  #   results to:   params['key'] = 'value # comment'
   standalone_comments: false,
 
   # Configure if multiple values are possible
   # for each key. Examples:
-  # set to true:   &quot;key = a&quot; and &quot;key = b&quot;
-  #  results to:   params[&quot;key&quot;] = [&quot;a&quot;, &quot;b&quot;]
-  # set to false:  &quot;key = a&quot; and &quot;key = b&quot;
-  #  results to:   params[&quot;key&quot;] = &quot;b&quot;
+  # set to true:   'key = a' and 'key = b'
+  #  results to:   params['key'] = ['a', 'b']
+  # set to false:  'key = a' and 'key = b'
+  #  results to:   params['key'] = 'b'
   multiple_values: false
 }
 </code></pre>
@@ -301,13 +305,13 @@ end
 <h2 id="parse_config_file">parse_config_file</h2>
 <p>Parse and test arbitrary configuration files:</p>
 <pre><code class="ruby">describe parse_config_file('/path/to/file.conf') do
-  its(&quot;PARAM_X&quot;) { should eq 'Y' }
+  its('PARAM_X') { should eq 'Y' }
 end
 </code></pre>
 
 <p>Options can be configure similar to <a href="#parse_config">parse_config</a>:</p>
 <pre><code class="ruby">describe parse_config_file('/path/to/file.conf', { multiple_values: true }) do
-  its(&quot;PARAM_X&quot;) { should include 'Y' }
+  its('PARAM_X') { should include 'Y' }
 end
 </code></pre>
 
@@ -320,25 +324,29 @@ end
 </code></pre>
 
 <h2 id="postgres_conf">postgres_conf</h2>
-<p>Test PostgreSQL configuration files:</p>
-<pre><code class="ruby">postgres_conf = PostgresConf.new('/var/lib/pgsql/data/postgresql.conf')
+<p>Test default PostgreSQL configuration files:</p>
+<pre><code class="ruby">postgres_conf
+</code></pre>
+
+<p>You can also specify the configuration path:</p>
+<pre><code class="ruby">postgres_conf('/var/lib/pgsql/data/postgresql.conf')
 </code></pre>
 
 <h3 id="params_1">:params</h3>
 <p>Retrieve parameters and test them:</p>
-<pre><code class="ruby">describe postgres.conf.params do
+<pre><code class="ruby">describe postgres_conf.params do
   it { should include('log_disconnections' =&gt; 'on') }
 end
 </code></pre>
 
 <h2 id="postgres_session">postgres_session</h2>
 <p>Run commands on a MySQL server and test their output:</p>
-<pre><code class="ruby">sql = postgres_session(&quot;my_user&quot;,&quot;password&quot;)
+<pre><code class="ruby">sql = postgres_session('my_user','password')
 </code></pre>
 
 <h3 id="describe_1">:describe</h3>
 <p>All tests are structured with the describe command:</p>
-<pre><code class="ruby">sql.describe(&quot;SELECT * FROM pg_shadow WHERE passwd IS NULL;&quot;) do
+<pre><code class="ruby">sql.describe('SELECT * FROM pg_shadow WHERE passwd IS NULL;') do
   its('output') { should eq('') }
 end
 </code></pre>
@@ -364,8 +372,8 @@ sshd_config    # /etc/ssh/sshd_config
 </code></pre>
 
 <p>Parse custom SSH client and server configuration files:</p>
-<pre><code class="ruby">client = SshConf.new('/etc/ssh/ssh_config')
-server = SshConf.new('/etc/ssh/sshd_config')
+<pre><code class="ruby">client = ssh_config('/path/to/ssh_config')
+server = sshd_config('/path/to/sshd_config')
 </code></pre>
 
 <p>Usage:</p>
