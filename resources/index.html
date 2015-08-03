@@ -169,6 +169,20 @@ end
 end
 </code></pre>
 
+<h3 id="users">:users</h3>
+<p>Access all group names:</p>
+<pre><code class="ruby">describe etc_group.where(name: 'my_user') do
+  its('users') { should include 'my_user' }
+end
+</code></pre>
+
+<h3 id="where">:where</h3>
+<p>Filter the list of groups. Filter choices are <code>name</code> for the group name, <code>gid</code> for a group ID (a number), <code>password</code>, and <code>users</code>.</p>
+<pre><code class="ruby">describe etc_group.where(name: 'my_user') do
+  its('users') { should include 'my_user' }
+end
+</code></pre>
+
 <h2 id="group_policy">group_policy</h2>
 <p>Test Microsoft Windows Group Policies:</p>
 <pre><code class="ruby">describe group_policy('Local Policies\Security Options') do
@@ -183,6 +197,10 @@ end
   its('login') { should eq nil }
   its('exec') { should eq nil }
 end
+</code></pre>
+
+<p>You can also specify a custom config path:</p>
+<pre><code class="ruby">inetd_conf('/path/to/inetd.conf')
 </code></pre>
 
 <h2 id="limits_conf">limits_conf</h2>
